@@ -1,0 +1,54 @@
+name: Consolidar repositorios
+
+on:
+  push:
+    paths:
+      - '.github/workflows/consolidar.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  consolidar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout curso-web
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Copiar repositorios como carpetas
+        shell: bash
+        run: |
+          set -e
+          repos=(
+            "egregafinal"
+            "entega-final-web"
+            "entrega1jorgefereira"
+            "finalentregable"
+            "jorge-fereira"
+            "jorgefere.github.io"
+            "pre-entrega-3"
+            "preEntrega1JorgeFereira"
+            "preEntrega2JorgeFereira"
+            "preEntrega3JorgeFereira"
+          )
+
+          for repo in "${repos[@]}"; do
+            if [ -e "$repo" ]; then
+              echo "$repo ya existe; se omite."
+              continue
+            fi
+            git clone --depth 1 "https://github.com/jorgefere/$repo.git" "$repo"
+            rm -rf "$repo/.git"
+          done
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          if git diff --cached --quiet; then
+            echo "No hay cambios para guardar."
+          else
+            git commit -m "Consolidar proyectos del curso web [skip ci]"
+            git push
+          fi
